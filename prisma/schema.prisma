@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum PinStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum ClickType {
+  AMAZON
+  PINTEREST
+  SHARE
+  VIEW
+}
+
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  name      String?
+  avatar    String?
+  role      UserRole   @default(USER)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  favorites Favorite[]
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  image       String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  pins        Pin[]
+}
+
+model Pin {
+  id                   String     @id @default(cuid())
+  title                String
+  slug                 String     @unique
+  seoTitle             String?
+  shortDescription     String
+  fullDescription      String     @db.Text
+  pinterestTitle       String?
+  pinterestDescription String?    @db.Text
+  metaDescription      String?
+  seoKeywords          String?
+  hashtags             String?
+  affiliateLink        String
+  price                Float?
+  originalPrice        Float?
+  features             String[]   @default([])
+  pros                 String[]   @default([])
+  cons                 String[]   @default([])
+  status               PinStatus  @default(DRAFT)
+  isTrending           Boolean    @default(false)
+  isDeal               Boolean    @default(false)
+  views                Int        @default(0)
+  likes                Int        @default(0)
+  saves                Int        @default(0)
+  amazonClicks         Int        @default(0)
+  pinterestClicks      Int        @default(0)
+  categoryId           String
+  category             Category   @relation(fields: [categoryId], references: [id])
+  images               PinImage[]
+  tags                 Tag[]
+  favorites            Favorite[]
+  clicks               Click[]
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  @@index([status, createdAt])
+  @@index([categoryId])
+  @@index([isTrending])
+  @@index([saves])
+}
+
+model PinImage {
+  id        String   @id @default(cuid())
+  url       String
+  alt       String?
+  sortOrder Int      @default(0)
+  pinId     String
+  pin       Pin      @relation(fields: [pinId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Tag {
+  id    String @id @default(cuid())
+  name  String @unique
+  slug  String @unique
+  pins  Pin[]
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  pinId     String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pin       Pin      @relation(fields: [pinId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, pinId])
+}
+
+model Click {
+  id        String    @id @default(cuid())
+  pinId     String?
+  type      ClickType
+  source    String?
+  pin       Pin?      @relation(fields: [pinId], references: [id], onDelete: SetNull)
+  createdAt DateTime  @default(now())
+
+  @@index([type, createdAt])
+}
+
+model BlogPost {
+  id              String   @id @default(cuid())
+  title           String
+  slug            String   @unique
+  excerpt         String
+  content         String   @db.Text
+  featuredImage   String
+  metaTitle       String?
+  metaDescription String?
+  seoKeywords     String?
+  status          PinStatus @default(DRAFT)
+  views           Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status, createdAt])
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+model SiteContent {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  title     String?
+  content   String   @db.Text
+  updatedAt DateTime @updatedAt
+}
