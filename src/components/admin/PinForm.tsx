@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { CATEGORIES } from "@/lib/categories";
 import { slugify } from "@/lib/utils";
-import type { AISEOResult, Pin } from "@/types";
+import type { AISEOResult, Pin, PinterestImportResult } from "@/types";
 import { ImageUpload } from "./ImageUpload";
 import { AISEOGenerator } from "./AISEOGenerator";
+import { PinterestImport } from "./PinterestImport";
 
 interface PinFormProps {
   pin?: Pin;
@@ -65,6 +66,21 @@ export function PinForm({ pin }: PinFormProps) {
     toast.success("SEO content generated!");
   };
 
+  const handlePinterestImport = (data: PinterestImportResult) => {
+    setImages([data.imageUrl]);
+    setForm((prev) => ({
+      ...prev,
+      title: data.title,
+      slug: pin ? prev.slug : slugify(data.title),
+      shortDescription: data.description.slice(0, 300),
+      fullDescription: data.description,
+      pinterestTitle: data.pinterestTitle,
+      pinterestDescription: data.pinterestDescription,
+      metaDescription: data.description.slice(0, 160),
+      affiliateLink: prev.affiliateLink,
+    }));
+  };
+
   const handleSubmit = async (status: "DRAFT" | "PUBLISHED") => {
     setLoading(true);
     try {
@@ -102,6 +118,8 @@ export function PinForm({ pin }: PinFormProps) {
 
   return (
     <div className="space-y-8">
+      {!pin && <PinterestImport onImport={handlePinterestImport} />}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-4">
           <h3 className="font-semibold text-lg">Basic Info</h3>

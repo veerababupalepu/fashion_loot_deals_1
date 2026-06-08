@@ -83,6 +83,15 @@ export interface AISEOResult {
   hashtags: string;
 }
 
+export interface PinterestImportResult {
+  title: string;
+  description: string;
+  imageUrl: string;
+  sourceUrl: string;
+  pinterestTitle: string;
+  pinterestDescription: string;
+}
+
 export interface AnalyticsData {
   totalPins: number;
   totalClicks: number;
